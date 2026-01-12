@@ -1,35 +1,31 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import Main from './components/Main.jsx'
 import './App.css'
+import { Upload, Search, LayoutDashboard, FileText, CheckCircle, AlertTriangle, X, ZoomIn, ZoomOut, ChevronRight, ChevronLeft } from 'lucide-react';
+import AppLayout from './components/layout/AppLayout.jsx';
+import ProcessingPage from './pages/ProcessingPage.jsx';
+import SearchPage from './pages/SearchPage.jsx';
+import DashboardPage from './pages/DashboardPage.jsx';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [activeView, setActiveView] = useState('processing');
+
+  const renderPage = () => {
+    switch (activeView) {
+      case 'processing':
+        return <ProcessingPage />;
+      case 'search':
+        return <SearchPage />;
+      case 'dashboard':
+        return <DashboardPage />;
+      default:
+        return <ProcessingPage />;
+    }
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <AppLayout activeView={activeView} onViewChange={setActiveView}>
+      {renderPage()}
+    </AppLayout>
+  );
 }
-
-export default App
