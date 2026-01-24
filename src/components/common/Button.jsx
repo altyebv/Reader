@@ -1,26 +1,33 @@
-const Button = ({ children, variant = 'primary', size = 'md', icon: Icon, onClick, disabled, className = '' }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium transition-colors rounded-lg disabled:opacity-50 disabled:cursor-not-allowed';
+import React from 'react';
+
+/**
+ * Professional Button Component
+ * Reusable button with consistent styling
+ */
+const Button = ({ 
+  children, 
+  onClick, 
+  variant = 'primary', 
+  icon: Icon, 
+  disabled = false,
+  className = ''
+}) => {
+  const baseClasses = "flex items-center gap-2.5 px-5 py-2.5 rounded-lg font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed";
   
-  const variants = {
-    primary: 'bg-teal-600 text-white hover:bg-teal-700',
-    secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300',
-    outline: 'border-2 border-gray-300 text-gray-700 hover:bg-gray-50',
-    ghost: 'text-gray-600 hover:bg-gray-100'
-  };
-  
-  const sizes = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2',
-    lg: 'px-6 py-3 text-lg'
+  const variantClasses = {
+    primary: "bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white shadow-lg hover:shadow-xl hover:shadow-indigo-500/30 hover:scale-[1.02]",
+    outline: "bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 hover:border-slate-400 shadow-sm hover:shadow-md hover:scale-[1.02]",
+    secondary: "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 hover:scale-[1.02]",
+    danger: "bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white shadow-lg hover:shadow-xl hover:shadow-rose-500/30 hover:scale-[1.02]"
   };
 
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`${baseClasses} ${variantClasses[variant]} ${className}`}
     >
-      {Icon && <Icon className={`${children ? 'ml-2' : ''} w-4 h-4`} />}
+      {Icon && <Icon className="w-4 h-4" />}
       {children}
     </button>
   );

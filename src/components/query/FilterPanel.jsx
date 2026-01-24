@@ -1,6 +1,195 @@
 import React from 'react';
-import { Filter, X, ChevronDown, ChevronUp } from 'lucide-react';
-import AutocompleteInput from '../query/AutoComplete';
+import { Filter, X, ChevronDown, ChevronUp, Calendar } from 'lucide-react';
+
+// Utility function to convert YYYY-MM-DD to MM/DD/YYYY
+const formatDateForQuery = (dateStr) => {
+  if (!dateStr) return '';
+  
+  // Input format: YYYY-MM-DD
+  const [year, month, day] = dateStr.split('-');
+  
+  // Output format: MM/DD/YYYY (matching your database)
+  return `${month}/${day}/${year}`;
+};
+
+// Utility function to convert MM/DD/YYYY to YYYY-MM-DD for input
+const formatDateForInput = (dateStr) => {
+  if (!dateStr) return '';
+  
+  // Input format: MM/DD/YYYY
+  const [month, day, year] = dateStr.split('/');
+  
+  // Output format: YYYY-MM-DD (for HTML input)
+  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+};
+
+const AutocompleteInput = ({ label, value, onChange, onSearch, placeholder, dir }) => {
+  const [suggestions, setSuggestions] = React.useState([]);
+  const [showSuggestions, setShowSuggestions] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+
+  const handleSearch = async (query) => {
+    if (query.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const results = await onSearch(query);
+      setSuggestions(results || []);
+      setShowSuggestions(true);
+    } catch (err) {
+      console.error('Search failed:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="relative">
+      <label className="block text-xs font-bold text-gray-700 mb-1 text-right">
+        {label}
+      </label>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => {
+          onChange(e.target.value);
+          handleSearch(e.target.value);
+        }}
+        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+        placeholder={placeholder}
+        className="w-full px-3 py-1.5 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white text-gray-900 font-medium transition-all"
+        dir={dir}
+      />
+      {showSuggestions && suggestions.length > 0 && (
+        <div className="absolute z-50 w-full mt-1 bg-white border-2 border-teal-300 rounded-lg shadow-2xl max-h-48 overflow-y-auto">
+          {suggestions.map((item, idx) => (
+            <button
+              key={idx}
+              onClick={() => {
+                onChange(item.value);
+                setShowSuggestions(false);
+              }}
+              className="w-full px-3 py-2 text-sm text-gray-900 text-left hover:bg-teal-100 border-b border-gray-200 last:border-b-0 transition-colors"
+              dir={dir}
+            >
+              <div className="font-bold text-gray-800">{item.value}</div>
+              {item.display_name && (
+                <div className="text-xs text-gray-600 font-medium">{item.display_name}</div>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const DateRangePicker = ({ dateFrom, dateTo, onDateFromChange, onDateToChange }) => {
+  const [showPicker, setShowPicker] = React.useState(false);
+  const [localDateFrom, setLocalDateFrom] = React.useState('');
+  const [localDateTo, setLocalDateTo] = React.useState('');
+
+  React.useEffect(() => {
+    setLocalDateFrom(formatDateForInput(dateFrom));
+    setLocalDateTo(formatDateForInput(dateTo));
+  }, [dateFrom, dateTo]);
+
+  const handleApply = () => {
+    if (localDateFrom) {
+      onDateFromChange(formatDateForQuery(localDateFrom));
+    }
+    if (localDateTo) {
+      onDateToChange(formatDateForQuery(localDateTo));
+    }
+    setShowPicker(false);
+  };
+
+  const handleClear = () => {
+    setLocalDateFrom('');
+    setLocalDateTo('');
+    onDateFromChange('');
+    onDateToChange('');
+    setShowPicker(false);
+  };
+
+  const getDisplayText = () => {
+    if (!dateFrom && !dateTo) return 'اختر نطاق التاريخ';
+    
+    const parts = [];
+    if (dateFrom) parts.push(`من: ${dateFrom}`);
+    if (dateTo) parts.push(`إلى: ${dateTo}`);
+    return parts.join(' | ');
+  };
+
+  return (
+    <div className="relative col-span-2 z-50">
+      <label className="block text-xs font-bold text-gray-700 mb-1 text-right">
+        نطاق التاريخ
+      </label>
+      
+      <button
+        type="button"
+        onClick={() => setShowPicker(!showPicker)}
+        className={`w-full px-3 py-1.5 text-sm border-2 rounded-lg flex items-center justify-between transition-all ${
+          dateFrom || dateTo
+            ? 'border-teal-500 bg-teal-50 text-teal-900'
+            : 'border-gray-300 bg-white text-gray-600'
+        } hover:border-teal-500 focus:ring-2 focus:ring-teal-500`}
+      >
+        <Calendar className="w-4 h-4" />
+        <span className="flex-1 text-right font-medium">{getDisplayText()}</span>
+      </button>
+
+      {showPicker && (
+        <div className="absolute z-50 mt-2 p-4 bg-white border-2 border-gray-300 rounded-lg shadow-xl w-full md:w-96 right-0">
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1 text-right">
+                من تاريخ
+              </label>
+              <input
+                type="date"
+                value={localDateFrom}
+                onChange={(e) => setLocalDateFrom(e.target.value)}
+                className="w-full px-3 py-2 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white text-gray-900 font-medium"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1 text-right">
+                إلى تاريخ
+              </label>
+              <input
+                type="date"
+                value={localDateTo}
+                onChange={(e) => setLocalDateTo(e.target.value)}
+                className="w-full px-3 py-2 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white text-gray-900 font-medium"
+              />
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={handleClear}
+                className="flex-1 px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-bold transition-colors"
+              >
+                مسح
+              </button>
+              <button
+                onClick={handleApply}
+                className="flex-1 px-3 py-2 text-sm bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-lg hover:from-teal-600 hover:to-teal-700 font-bold shadow-md transition-all"
+              >
+                تطبيق
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const FilterPanel = ({ 
   filters, 
@@ -13,7 +202,7 @@ const FilterPanel = ({
   const hasActiveFilters = Object.values(filters).some(v => v);
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border-2 border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-lg border-2 border-gray-200 overflow-visible relative z-40">
       {/* Header */}
       <button
         onClick={onToggleExpand}
@@ -88,31 +277,13 @@ const FilterPanel = ({
               />
             </div>
 
-            {/* Date From */}
-            <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1 text-right">
-                من تاريخ
-              </label>
-              <input
-                type="date"
-                value={filters.date_from}
-                onChange={(e) => onFilterChange('date_from', e.target.value)}
-                className="w-full px-3 py-1.5 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white text-gray-900 font-medium transition-all"
-              />
-            </div>
-
-            {/* Date To */}
-            <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1 text-right">
-                إلى تاريخ
-              </label>
-              <input
-                type="date"
-                value={filters.date_to}
-                onChange={(e) => onFilterChange('date_to', e.target.value)}
-                className="w-full px-3 py-1.5 text-sm border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white text-gray-900 font-medium transition-all"
-              />
-            </div>
+            {/* Date Range Picker */}
+            <DateRangePicker
+              dateFrom={filters.date_from}
+              dateTo={filters.date_to}
+              onDateFromChange={(value) => onFilterChange('date_from', value)}
+              onDateToChange={(value) => onFilterChange('date_to', value)}
+            />
 
             {/* Min Amount */}
             <div>

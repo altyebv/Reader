@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { ZoomIn, ZoomOut, Maximize2, RotateCw, FileText } from 'lucide-react';
 
 /**
- * Enhanced receipt preview component with zoom, rotate, and pan
+ * Professional Receipt Preview Component
+ * Enhanced image viewer with smooth controls
  */
 const ReceiptPreview = ({ imageUrl, zoom, onZoomChange }) => {
   const [rotation, setRotation] = useState(0);
@@ -56,6 +57,16 @@ const ReceiptPreview = ({ imageUrl, zoom, onZoomChange }) => {
   };
 
   useEffect(() => {
+    const imageContainer = document.querySelector('[data-receipt-preview]');
+    if (imageContainer) {
+      imageContainer.addEventListener('wheel', handleWheel, { passive: false });
+      return () => {
+        imageContainer.removeEventListener('wheel', handleWheel);
+      };
+    }
+  }, [zoom]);
+
+  useEffect(() => {
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
@@ -66,7 +77,7 @@ const ReceiptPreview = ({ imageUrl, zoom, onZoomChange }) => {
     }
   }, [isDragging, dragStart]);
 
-  // Reset position when zoom changes to 100 or less
+  // Reset position when zoom returns to 100 or less
   useEffect(() => {
     if (zoom <= 100) {
       setPosition({ x: 0, y: 0 });
@@ -74,58 +85,59 @@ const ReceiptPreview = ({ imageUrl, zoom, onZoomChange }) => {
   }, [zoom]);
 
   return (
-    <div className="h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl overflow-hidden flex flex-col shadow-2xl border border-slate-700">
+    <div className="h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl overflow-hidden flex flex-col shadow-2xl border border-slate-700/50">
       {/* Toolbar */}
-      <div className="bg-slate-800/80 backdrop-blur px-4 py-3 flex items-center justify-between border-b border-slate-700">
+      <div className="bg-slate-800/90 backdrop-blur-sm px-5 py-3.5 flex items-center justify-between border-b border-slate-700/50">
         <div className="flex items-center gap-2">
           <button 
             onClick={handleZoomOut} 
-            className="p-2 hover:bg-slate-700 rounded-lg transition-all hover:scale-110" 
+            className="p-2.5 hover:bg-slate-700/50 rounded-lg transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed" 
             title="تصغير"
             disabled={zoom <= 50}
           >
-            <ZoomOut className="w-5 h-5 text-gray-300" />
+            <ZoomOut className="w-5 h-5 text-slate-300" />
           </button>
           <button 
             onClick={handleZoomIn} 
-            className="p-2 hover:bg-slate-700 rounded-lg transition-all hover:scale-110" 
+            className="p-2.5 hover:bg-slate-700/50 rounded-lg transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed" 
             title="تكبير"
             disabled={zoom >= 200}
           >
-            <ZoomIn className="w-5 h-5 text-gray-300" />
+            <ZoomIn className="w-5 h-5 text-slate-300" />
           </button>
+          <div className="w-px h-6 bg-slate-600 mx-1" />
           <button 
             onClick={handleRotate} 
-            className="p-2 hover:bg-slate-700 rounded-lg transition-all hover:scale-110" 
+            className="p-2.5 hover:bg-slate-700/50 rounded-lg transition-all hover:scale-105" 
             title="تدوير"
           >
-            <RotateCw className="w-5 h-5 text-gray-300" />
+            <RotateCw className="w-5 h-5 text-slate-300" />
           </button>
           <button 
             onClick={handleReset} 
-            className="p-2 hover:bg-slate-700 rounded-lg transition-all hover:scale-110" 
+            className="p-2.5 hover:bg-slate-700/50 rounded-lg transition-all hover:scale-105" 
             title="إعادة تعيين"
           >
-            <Maximize2 className="w-5 h-5 text-gray-300" />
+            <Maximize2 className="w-5 h-5 text-slate-300" />
           </button>
         </div>
         
         <div className="flex items-center gap-3">
-          <span className="text-sm font-bold text-white px-3 py-1.5 bg-slate-700 rounded-lg shadow-inner">
-            {zoom}%
-          </span>
           {zoom > 100 && (
-            <span className="text-xs text-gray-400 bg-slate-700/50 px-3 py-1.5 rounded-lg">
+            <span className="text-xs text-slate-400 bg-slate-700/50 px-3 py-1.5 rounded-lg font-medium">
               اسحب للتنقل
             </span>
           )}
+          <span className="text-sm font-bold text-white px-4 py-1.5 bg-slate-700 rounded-lg shadow-inner">
+            {zoom}%
+          </span>
         </div>
       </div>
       
       {/* Image Container */}
       <div 
-        className="flex-1 overflow-hidden p-4 flex items-center justify-center"
-        onWheel={handleWheel}
+        className="flex-1 overflow-hidden p-6 flex items-center justify-center"
+        data-receipt-preview
         style={{ cursor: zoom > 100 ? (isDragging ? 'grabbing' : 'grab') : 'default' }}
       >
         {imageUrl ? (
@@ -136,25 +148,25 @@ const ReceiptPreview = ({ imageUrl, zoom, onZoomChange }) => {
           >
             <img
               src={imageUrl}
-              alt="Receipt preview"
+              alt="معاينة الإشعار"
               style={{ 
                 transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
                 maxWidth: '100%',
                 maxHeight: '100%',
                 userSelect: 'none'
               }}
-              className="transition-transform duration-200 shadow-2xl rounded-lg"
+              className="transition-transform duration-200 shadow-2xl rounded-xl"
               onMouseDown={handleMouseDown}
               draggable={false}
             />
           </div>
         ) : (
-          <div className="text-gray-400 text-center">
-            <div className="w-24 h-24 mx-auto mb-4 rounded-2xl bg-slate-800 flex items-center justify-center">
-              <FileText className="w-12 h-12 text-slate-600" />
+          <div className="text-slate-400 text-center">
+            <div className="w-28 h-28 mx-auto mb-6 rounded-2xl bg-slate-800/50 flex items-center justify-center border border-slate-700/50">
+              <FileText className="w-14 h-14 text-slate-600" />
             </div>
-            <p className="text-lg font-semibold mb-2">لا توجد صورة</p>
-            <p className="text-sm text-gray-500">قم برفع إشعار للمعاينة</p>
+            <p className="text-lg font-semibold mb-2 text-slate-300">لا توجد صورة</p>
+            <p className="text-sm text-slate-500">قم برفع إشعار للمعاينة</p>
           </div>
         )}
       </div>

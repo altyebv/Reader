@@ -103,25 +103,59 @@ export async function checkDuplicate(transactionId) {
   return fetchAPI(`/api/receipts/check-duplicate/${transactionId}`);
 }
 
+// ============================================================================
+// Account Management APIs (UPDATED & SIMPLIFIED)
+// ============================================================================
+
 /**
- * Get all known accounts (for autocomplete)
- * @returns {Promise<Array>} - List of known accounts
+ * Get all known accounts with owner names
+ * @returns {Promise<Array>} - List of accounts with {account_number, owner_name, frequency, verified}
  */
 export async function getKnownAccounts() {
   return fetchAPI('/api/accounts/known');
 }
 
 /**
- * Search for accounts by name or number
+ * Search for accounts by number OR owner name
  * @param {string} query - Search query
- * @returns {Promise<Array>} - Matching accounts
+ * @returns {Promise<Array>} - Matching accounts with owner names
  */
 export async function searchAccounts(query) {
   return fetchAPI(`/api/accounts/search?q=${encodeURIComponent(query)}`);
 }
 
 /**
- * NEW: Search for receiver names with optional to_account filtering
+ * Add a new known account with owner name
+ * @param {string} accountNumber - Account number
+ * @param {string} ownerName - Account owner's name
+ * @returns {Promise<Object>} - Success response
+ */
+export async function addKnownAccount(accountNumber, ownerName) {
+  return fetchAPI('/api/accounts/add', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      account_number: accountNumber,
+      owner_name: ownerName
+    })
+  });
+}
+
+/**
+ * Delete a known account
+ * @param {string} accountNumber - Account number to delete
+ * @returns {Promise<Object>} - Success response
+ */
+export async function deleteKnownAccount(accountNumber) {
+  return fetchAPI(`/api/accounts/${encodeURIComponent(accountNumber)}`, {
+    method: 'DELETE'
+  });
+}
+
+/**
+ * Search for receiver names with optional to_account filtering
  * @param {string} query - Search query (receiver name)
  * @param {string} toAccount - Optional to_account to prioritize linked names
  * @returns {Promise<Array>} - Matching receiver names
@@ -198,6 +232,47 @@ export async function exportTransactions(filters = {}, format = 'json') {
  */
 export async function getStatistics() {
   return fetchAPI('/api/statistics');
+}
+
+
+// ============================================================================
+// Archive Management APIs
+// ============================================================================
+
+/**
+ * Get archived receipt image
+ * @param {string} transactionId - Transaction ID
+ * @returns {Promise<string>} - Image data URL
+ */
+export async function getArchivedReceiptImage(transactionId) {
+  const response = await fetch(`${API_BASE_URL}/api/receipts/${transactionId}/archive`);
+  
+  if (!response.ok) {
+    throw new APIError('Failed to fetch archived image', response.status, null);
+  }
+  
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
+}
+
+/**
+ * Get all transactions (for archive listing)
+ * @param {Object} filters - Optional filters
+ * @returns {Promise<Object>} - Transactions data
+ */
+export async function getAllTransactions(filters = {}) {
+  return queryTransactions(filters);
+}
+
+/**
+ * Delete transaction and its archive
+ * @param {number} receiptId - Receipt database ID
+ * @returns {Promise<Object>} - Success response
+ */
+export async function deleteTransaction(receiptId) {
+  return fetchAPI(`/api/receipts/${receiptId}`, {
+    method: 'DELETE'
+  });
 }
 
 // Export APIError for error handling in components

@@ -30,17 +30,19 @@ const SearchPage = () => {
   const [sortOrder, setSortOrder] = useState('desc');
   const [exporting, setExporting] = useState(false);
   const [notifyOpen, setNotifyOpen] = useState(false);
+  const isRTL = true;
 
-  const ALL_COLUMNS = [
-    { key: 'id', label: '#', dir: 'ltr', align: 'left' },
-    { key: 'transaction_id', label: 'رقم العملية', dir: 'ltr', align: 'left' },
-    { key: 'datetime', label: 'التاريخ', dir: 'ltr', align: 'left' },
-    { key: 'from_account', label: 'من حساب', dir: 'ltr', align: 'left' },
-    { key: 'to_account', label: 'إلى حساب', dir: 'ltr', align: 'left' },
-    { key: 'receiver_name', label: 'اسم المستلم', dir: 'rtl', align: 'right' },
-    { key: 'comment', label: 'التعليق', dir: 'rtl', align: 'right' },
-    { key: 'amount', label: 'المبلغ', dir: 'ltr', align: 'left' }
-  ];
+const ALL_COLUMNS = [
+  { key: 'id', label: '#', dir: 'rtl' },
+  { key: 'transaction_id', label: 'رقم العملية', dir: 'rtl' },
+  { key: 'datetime', label: 'التاريخ', dir: 'rtl' },
+  { key: 'from_account', label: 'من حساب', dir: 'rtl' },
+  { key: 'to_account', label: 'إلى حساب', dir: 'rtl' },
+  { key: 'receiver_name', label: 'اسم المستلم', dir: 'rtl' },
+  { key: 'comment', label: 'التعليق', dir: 'rtl' },
+  { key: 'amount', label: 'المبلغ', dir: 'rtl' }
+];
+
 
   const [selectedColumns, setSelectedColumns] = useState(
     ALL_COLUMNS.map(col => col.key)
@@ -166,18 +168,18 @@ const SearchPage = () => {
       {/* Header - Fixed */}
       <div className="flex-shrink-0 bg-white border-b-2 border-gray-200 px-4 py-3 shadow-sm">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+           {/* Summary Cards in Header */}
+          <SummaryCards totalResults={totalResults} totalAmount={calculateTotal()} />
+
+          <div className="flex items-center gap-1">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center shadow-lg">
-              <Search className="w-5 h-5 text-white" />
+              <Search className="w-7 h-7 text-white" />
             </div>
-            <div>
+            <div className='mx-3'>
               <h2 className="text-xl font-bold text-gray-900 text-right">البحث والاستعلام</h2>
               <p className="text-xs text-gray-600 text-right">ابحث عن المعاملات وصدّر البيانات</p>
             </div>
           </div>
-
-          {/* Summary Cards in Header */}
-          <SummaryCards totalResults={totalResults} totalAmount={calculateTotal()} />
         </div>
 
         {/* Error Message */}
@@ -240,6 +242,7 @@ const SearchPage = () => {
             sortBy={sortBy}
             sortOrder={sortOrder}
             onSort={handleSort}
+            isRTL={isRTL}
           />
         </div>
       </div>

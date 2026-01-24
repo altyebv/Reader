@@ -1,81 +1,82 @@
 import React from 'react';
-import { XCircle, AlertTriangle, AlertCircle, CheckCircle, X } from 'lucide-react';
+import { CheckCircle, AlertCircle, Info, XCircle, X } from 'lucide-react';
 
 /**
- * Unified notification bar component
- * Displays notifications with priority system: error > warning > info > success
+ * Professional Floating Notification Component
+ * Fixed position notifications that don't affect layout
  */
 const NotificationBar = ({ notifications, onDismiss }) => {
   if (!notifications || notifications.length === 0) return null;
 
-  const priorityOrder = { error: 0, warning: 1, info: 2, success: 3 };
-  
-  // Sort notifications by priority
-  const sortedNotifications = [...notifications].sort((a, b) => 
-    priorityOrder[a.type] - priorityOrder[b.type]
-  );
-
-  // Show the highest priority notification
-  const topNotification = sortedNotifications[0];
-
-  const styles = {
-    error: {
-      bg: 'bg-gradient-to-r from-red-50 to-red-100',
-      border: 'border-red-400',
-      text: 'text-red-900',
-      icon: XCircle,
-      iconColor: 'text-red-600'
-    },
-    warning: {
-      bg: 'bg-gradient-to-r from-amber-50 to-amber-100',
-      border: 'border-amber-400',
-      text: 'text-amber-900',
-      icon: AlertTriangle,
-      iconColor: 'text-amber-600'
-    },
-    info: {
-      bg: 'bg-gradient-to-r from-blue-50 to-blue-100',
-      border: 'border-blue-400',
-      text: 'text-blue-900',
-      icon: AlertCircle,
-      iconColor: 'text-blue-600'
-    },
-    success: {
-      bg: 'bg-gradient-to-r from-green-50 to-green-100',
-      border: 'border-green-400',
-      text: 'text-green-900',
-      icon: CheckCircle,
-      iconColor: 'text-green-600'
+  const getNotificationStyle = (type) => {
+    switch (type) {
+      case 'success':
+        return {
+          bg: 'bg-emerald-50',
+          border: 'border-emerald-300',
+          text: 'text-emerald-800',
+          icon: <CheckCircle className="w-5 h-5 text-emerald-600" />,
+        };
+      case 'error':
+        return {
+          bg: 'bg-rose-50',
+          border: 'border-rose-300',
+          text: 'text-rose-800',
+          icon: <XCircle className="w-5 h-5 text-rose-600" />,
+        };
+      case 'warning':
+        return {
+          bg: 'bg-amber-50',
+          border: 'border-amber-300',
+          text: 'text-amber-800',
+          icon: <AlertCircle className="w-5 h-5 text-amber-600" />,
+        };
+      case 'info':
+      default:
+        return {
+          bg: 'bg-blue-50',
+          border: 'border-blue-300',
+          text: 'text-blue-800',
+          icon: <Info className="w-5 h-5 text-blue-600" />,
+        };
     }
   };
 
-  const style = styles[topNotification.type];
-  const Icon = style.icon;
-
   return (
-    <div className={`${style.bg} border-2 ${style.border} rounded-xl p-4 shadow-lg animate-in slide-in-from-top duration-300`}>
-      <div className="flex items-start gap-3">
-        <Icon className={`w-6 h-6 ${style.iconColor} flex-shrink-0 mt-0.5`} />
-        <div className="flex-1 min-w-0">
-          <p className={`${style.text} text-sm font-bold text-right leading-relaxed`}>
-            {topNotification.message}
-          </p>
-          {sortedNotifications.length > 1 && (
-            <p className="text-xs text-gray-600 mt-1 text-right">
-              +{sortedNotifications.length - 1} إشعار إضافي
-            </p>
-          )}
-        </div>
-        {topNotification.dismissible && (
-          <button
-            onClick={() => onDismiss(topNotification.id)}
-            className={`${style.iconColor} hover:opacity-70 transition-opacity`}
-            aria-label="إغلاق"
+    <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 space-y-3 max-w-2xl w-full px-5 pointer-events-none">
+      {notifications.map((notification) => {
+        const style = getNotificationStyle(notification.type);
+        
+        return (
+          <div
+            key={notification.id}
+            className={`
+              ${style.bg} ${style.border} ${style.text}
+              border-2 rounded-xl px-5 py-4 flex items-center gap-4
+              shadow-2xl backdrop-blur-sm animate-in fade-in slide-in-from-top-5 duration-300
+              pointer-events-auto
+            `}
           >
-            <X className="w-5 h-5" />
-          </button>
-        )}
-      </div>
+            <div className="flex-shrink-0">
+              {style.icon}
+            </div>
+            
+            <p className="flex-1 text-sm font-semibold text-right leading-relaxed">
+              {notification.message}
+            </p>
+            
+            {notification.dismissible && (
+              <button
+                onClick={() => onDismiss(notification.id)}
+                className="flex-shrink-0 p-1.5 hover:bg-black/5 rounded-lg transition-all"
+                aria-label="إغلاق"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 };
